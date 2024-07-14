@@ -1,5 +1,4 @@
-import type { StringOptions, TString } from "@sinclair/typebox";
-import { TSchema, Type as t } from "@sinclair/typebox";
+import { StringOptions, TSchema, TString, Type as t } from "@sinclair/typebox";
 
 export function Nullable<T extends TSchema>(schema: T) {
   return t.Union([schema, t.Null()]);

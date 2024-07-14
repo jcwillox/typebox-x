@@ -1,4 +1,4 @@
-import { TSchema } from "@sinclair/typebox";
+import type { TSchema } from "@sinclair/typebox";
 import { TypeCheck, TypeCompiler } from "@sinclair/typebox/compiler";
 
 const compilerCache = new Map<TSchema, unknown>();

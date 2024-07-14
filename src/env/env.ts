@@ -1,4 +1,4 @@
-import { StaticDecode, TSchema } from "@sinclair/typebox";
+import type { StaticDecode, TSchema } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { MergedValueError, mergeErrors } from "../tools";
 
