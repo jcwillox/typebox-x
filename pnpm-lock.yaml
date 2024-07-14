@@ -60,6 +60,9 @@ importers:
       tsup:
         specifier: 8.1.0
         version: 8.1.0(typescript@5.5.3)
+      tsx:
+        specifier: 4.16.2
+        version: 4.16.2
       typescript:
         specifier: 5.5.3
         version: 5.5.3
@@ -1297,6 +1300,11 @@ packages:
       typescript:
         optional: true
 
+  tsx@4.16.2:
+    resolution: {integrity: sha512-C1uWweJDgdtX2x600HjaFaucXTilT7tgUZHbOE4+ypskZ1OP8CRCSDkCxG6Vya9EwaFIVagWwpaVAn5wzypaqQ==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
     engines: {node: '>= 0.8.0'}
@@ -2493,6 +2501,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
       - ts-node
+
+  tsx@4.16.2:
+    dependencies:
+      esbuild: 0.21.5
+      get-tsconfig: 4.7.5
+    optionalDependencies:
+      fsevents: 2.3.3
 
   type-check@0.4.0:
     dependencies:
