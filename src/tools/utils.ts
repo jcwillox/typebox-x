@@ -8,7 +8,13 @@ export type MergedValueError = Omit<ValueError, "type" | "message"> & {
   }[];
 };
 
-export function mergeErrors(errors: ValueErrorIterator): MergedValueError[] {
+/**
+ * Merges multiple errors for a path into a single object per path,
+ * with an array of errors, see {@link MergedValueError}.
+ */
+export function mergeErrors(
+  errors: ValueErrorIterator | ValueError[],
+): MergedValueError[] {
   const mergedErrors: Record<string, MergedValueError> = {};
   for (const { message, type, ...error } of errors) {
     if (error.path in mergedErrors) {
@@ -23,7 +29,13 @@ export function mergeErrors(errors: ValueErrorIterator): MergedValueError[] {
   return Object.values(mergedErrors);
 }
 
+/**
+ * Converts TypeBox's `/` based JSON path to a `.` based path.
+ *
+ * @example
+ * formatTypeBoxPath("/a/b/c") // -> "a.b.c"
+ */
 export function formatTypeBoxPath(path: string) {
-  path = path[0].startsWith("/") ? path.slice(1) : path;
+  path = path[0] === "/" ? path.slice(1) : path;
   return path.replaceAll("/", ".");
 }
