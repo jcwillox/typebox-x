@@ -9,7 +9,7 @@ if (!FormatRegistry.Has("date")) {
 
 if (!FormatRegistry.Has("date-time")) {
   FormatRegistry.Set("date-time", (value) => {
-    return isISO8601(value);
+    return isISO8601(value) && !isNaN(Date.parse(value));
   });
 }
 
