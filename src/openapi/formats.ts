@@ -30,3 +30,10 @@ if (!FormatRegistry.Has("uuid")) {
     return isUUID(value);
   });
 }
+
+if (!FormatRegistry.Has("color-hex")) {
+  const MATCH_COLOR_HEX = /^#[0-9A-Fa-f]{6}$/;
+  FormatRegistry.Set("color-hex", (value) => {
+    return MATCH_COLOR_HEX.test(value);
+  });
+}
