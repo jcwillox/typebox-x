@@ -11,6 +11,7 @@ type TParamSchema = {
   examples?: any;
 };
 
+/** Creates a parameter schema for OpenAPI from a JSON schema */
 export function getParamSchema(
   name: string,
   { description, example, examples, ...schema }: TSchema,
@@ -19,6 +20,7 @@ export function getParamSchema(
   return { name, required, schema, description, example, examples };
 }
 
+/** Creates an array of parameter schemas for OpenAPI from a JSON schema */
 export function getParamSchemas(obj: TObject) {
   return Object.entries(obj.properties).map(([name, schema]) =>
     getParamSchema(name, schema, obj.required?.includes(name)),
