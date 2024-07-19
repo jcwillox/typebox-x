@@ -4,10 +4,11 @@ import {
   Injectable,
   NestInterceptor,
 } from "@nestjs/common";
-import { Value } from "@sinclair/typebox/value";
+import { TransformEncodeCheckError, Value } from "@sinclair/typebox/value";
 import { map } from "rxjs";
 import { cacheCompile } from "../tools";
 import { TypeBoxOptions } from "./decorators.ts";
+import { TypeBoxValidationError } from "./errors.ts";
 
 @Injectable()
 export class TypeBoxInterceptor implements NestInterceptor {
@@ -19,7 +20,13 @@ export class TypeBoxInterceptor implements NestInterceptor {
       map((value) => {
         if (!this.options.response) return value;
         value = Value.Clean(this.options.response, value);
-        return compiler.Encode(value);
+        try {
+          return compiler.Encode(value);
+        } catch (err) {
+          if (err instanceof TransformEncodeCheckError)
+            throw new TypeBoxValidationError(err, compiler);
+          throw err;
+        }
       }),
     );
   }

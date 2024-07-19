@@ -1,7 +1,8 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from "@nestjs/common";
-import { Value } from "@sinclair/typebox/value";
+import { TransformDecodeCheckError, Value } from "@sinclair/typebox/value";
 import { cacheCompile } from "../tools";
 import { TypeBoxOptions } from "./decorators.ts";
+import { TypeBoxValidationError } from "./errors.ts";
 
 @Injectable()
 export class TypeboxPipe implements PipeTransform {
@@ -10,7 +11,13 @@ export class TypeboxPipe implements PipeTransform {
     if (metadata.type === "body" && this.options.body) {
       const compiler = cacheCompile(this.options.body);
       value = Value.Clean(this.options.body, value);
-      return compiler.Decode(value);
+      try {
+        return compiler.Decode(value);
+      } catch (err) {
+        if (err instanceof TransformDecodeCheckError)
+          throw new TypeBoxValidationError(err, compiler);
+        throw err;
+      }
     }
 
     if (metadata.type === "query" && this.options.query) {
@@ -18,7 +25,13 @@ export class TypeboxPipe implements PipeTransform {
       value = Value.Clean(this.options.query, value);
       value = Value.Convert(this.options.query, value);
       value = Value.Default(this.options.query, value);
-      return compiler.Decode(value);
+      try {
+        return compiler.Decode(value);
+      } catch (err) {
+        if (err instanceof TransformDecodeCheckError)
+          throw new TypeBoxValidationError(err, compiler);
+        throw err;
+      }
     }
 
     if (metadata.type === "param" && metadata.data && this.options.params) {
@@ -27,7 +40,13 @@ export class TypeboxPipe implements PipeTransform {
       const compiler = cacheCompile(schema);
       value = Value.Clean(schema, value);
       value = Value.Convert(schema, value);
-      return compiler.Decode(value);
+      try {
+        return compiler.Decode(value);
+      } catch (err) {
+        if (err instanceof TransformDecodeCheckError)
+          throw new TypeBoxValidationError(err, compiler);
+        throw err;
+      }
     }
 
     return value;
