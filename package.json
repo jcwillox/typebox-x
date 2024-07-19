@@ -1,11 +1,18 @@
 {
-  "name": "typebox-tools",
+  "name": "@jcwillox/typebox-x",
   "version": "0.0.0-dev",
   "description": "Tools for working with TypeBox",
   "author": "Josh Willox <joshwillox@gmail.com> (https://github.com/jcwillox/)",
   "license": "MIT",
   "repository": "jcwillox/react-query-ofetch",
   "type": "module",
+  "keywords": [
+    "nestjs",
+    "typebox",
+    "typescript",
+    "validation",
+    "openapi"
+  ],
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup --minify",
@@ -19,6 +26,7 @@
     "@nestjs/common": "10.3.10",
     "@nestjs/swagger": "7.4.0",
     "@sinclair/typebox": "0.32.34",
+    "@swc/core": "1.7.0",
     "@tsconfig/node20": "20.1.4",
     "@types/node": "20.14.10",
     "@types/validator": "13.12.0",
@@ -33,7 +41,8 @@
     "rxjs": "7.8.1",
     "tsup": "8.1.0",
     "tsx": "4.16.2",
-    "typescript": "5.5.3"
+    "typescript": "5.5.3",
+    "validator": "13.12.0"
   },
   "peerDependencies": {
     "@nestjs/common": "^10.3.10",
@@ -41,8 +50,16 @@
     "@sinclair/typebox": "^0.32.34",
     "rxjs": "^7.8.1"
   },
-  "dependencies": {
-    "validator": "^13.12.0"
+  "peerDependenciesMeta": {
+    "@nestjs/common": {
+      "optional": true
+    },
+    "@nestjs/swagger": {
+      "optional": true
+    },
+    "rxjs": {
+      "optional": true
+    }
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -58,6 +75,26 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
+      }
+    },
+    "./formats": {
+      "import": {
+        "types": "./dist/formats.d.ts",
+        "default": "./dist/formats.js"
+      },
+      "require": {
+        "types": "./dist/formats.d.cts",
+        "default": "./dist/formats.cjs"
+      }
+    },
+    "./nestjs": {
+      "import": {
+        "types": "./dist/nestjs.d.ts",
+        "default": "./dist/nestjs.js"
+      },
+      "require": {
+        "types": "./dist/nestjs.d.cts",
+        "default": "./dist/nestjs.cjs"
       }
     }
   },

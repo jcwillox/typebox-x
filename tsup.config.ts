@@ -5,10 +5,9 @@ const isProduction =
 
 export default defineConfig({
   entry: {
-    index: "src/tools/index.ts",
-    env: "src/env/index.ts",
+    index: "src/index.ts",
+    formats: "src/formats/index.ts",
     nestjs: "src/nestjs/index.ts",
-    openapi: "src/openapi/index.ts",
   },
   format: ["cjs", "esm"],
   treeshake: true,

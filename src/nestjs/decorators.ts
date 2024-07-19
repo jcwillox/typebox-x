@@ -1,4 +1,17 @@
-import { UseInterceptors, UsePipes, applyDecorators } from "@nestjs/common";
+import {
+  All as NestAll,
+  Delete as NestDelete,
+  Get as NestGet,
+  Head as NestHead,
+  Options as NestOptions,
+  Patch as NestPatch,
+  Post as NestPost,
+  Put as NestPut,
+  Search as NestSearch,
+  UseInterceptors,
+  UsePipes,
+  applyDecorators,
+} from "@nestjs/common";
 import {
   ApiBody,
   ApiOperation,
@@ -46,37 +59,94 @@ export type TypeBoxOptions = {
    * Path params will be cleaned, validated and decoded.
    */
   params?: Record<string, TSchema>;
+  /**
+   * Define which schemas are required.
+   *
+   * In development errors will be thrown during validation if a property is used but missing
+   * a corresponding schema. In production the property will be set to an empty object.
+   *
+   * E.g. a get request missing a `query` schema will throw an error if it receives
+   * a non-empty query params object.
+   *
+   * By default, only param schemas are optional.
+   */
+  requiredSchemas?: {
+    /** @default true */
+    query?: boolean;
+    /** @default true */
+    body?: boolean;
+    /** @default true */
+    response?: boolean;
+    /** @default false */
+    params?: boolean;
+  };
 };
 
-export function TypeBox(schema: TypeBoxOptions) {
+const getTypeBoxDecorators = (status: number, options?: TypeBoxOptions) => {
+  if (!options) return [];
   const decorators: MethodDecorator[] = [];
-  if (schema.summary || schema.description) {
+  if (options.summary || options.description) {
     decorators.push(
       ApiOperation({
-        summary: schema.summary,
-        description: schema.description,
+        summary: options.summary,
+        description: options.description,
       }),
     );
   }
-  if (schema.query || schema.body || schema.params) {
-    decorators.push(UsePipes(new TypeboxPipe(schema)));
+  if (options.query || options.body || options.params) {
+    decorators.push(UsePipes(new TypeboxPipe(options)));
   }
-  if (schema.query) {
-    decorators.push(...getParamSchemas(schema.query).map(ApiQuery));
+  if (options.query) {
+    decorators.push(...getParamSchemas(options.query).map(ApiQuery));
   }
-  if (schema.body) {
-    decorators.push(ApiBody({ schema: schema.body }));
+  if (options.body) {
+    decorators.push(ApiBody({ schema: options.body }));
   }
-  if (schema.response) {
+  if (options.response) {
     decorators.push(
-      UseInterceptors(new TypeBoxInterceptor(schema)),
-      ApiResponse({ schema: schema.response }),
+      UseInterceptors(new TypeBoxInterceptor(options)),
+      ApiResponse({ schema: options.response, status }),
     );
   }
-  if (schema.params) {
-    for (const key in schema.params) {
-      decorators.push(ApiParam(getParamSchema(key, schema.params[key], true)));
+  if (options.params) {
+    for (const key in options.params) {
+      decorators.push(ApiParam(getParamSchema(key, options.params[key], true)));
     }
   }
-  return applyDecorators(...decorators);
-}
+  return decorators;
+};
+
+const createTypeBoxMethod =
+  (method: (path?: string | string[]) => MethodDecorator, status: number) =>
+  (
+    pathOrOptions?: string | string[] | TypeBoxOptions,
+    options?: TypeBoxOptions,
+  ): MethodDecorator => {
+    const isFirstPath =
+      typeof pathOrOptions === "string" || Array.isArray(pathOrOptions);
+    const path = isFirstPath ? pathOrOptions : undefined;
+    const opts = isFirstPath ? options : pathOrOptions;
+    return applyDecorators(method(path), ...getTypeBoxDecorators(status, opts));
+  };
+
+export const TypeBoxPost = createTypeBoxMethod(NestPost, 201);
+export const TypeBoxGet = createTypeBoxMethod(NestGet, 200);
+export const TypeBoxDelete = createTypeBoxMethod(NestDelete, 204);
+export const TypeBoxPut = createTypeBoxMethod(NestPut, 200);
+export const TypeBoxPatch = createTypeBoxMethod(NestPatch, 200);
+export const TypeBoxOptions = createTypeBoxMethod(NestOptions, 200);
+export const TypeBoxHead = createTypeBoxMethod(NestHead, 200);
+export const TypeBoxAll = createTypeBoxMethod(NestAll, 200);
+export const TypeBoxSearch = createTypeBoxMethod(NestSearch, 200);
+
+export {
+  TypeBoxPost as Post,
+  TypeBoxGet as Get,
+  TypeBoxDelete as Delete,
+  TypeBoxPut as Put,
+  TypeBoxPatch as Patch,
+  TypeBoxOptions as Options,
+  TypeBoxHead as Head,
+  TypeBoxAll as All,
+  TypeBoxSearch as Search,
+};
