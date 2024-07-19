@@ -1,9 +1,9 @@
 import { FormatRegistry } from "@sinclair/typebox";
-import isDate from "validator/lib/isDate";
-import isEmail from "validator/lib/isEmail";
-import isISO8601 from "validator/lib/isISO8601";
-import isURL from "validator/lib/isURL";
-import isUUID from "validator/lib/isUUID";
+import isDate from "validator/lib/isDate.js";
+import isEmail from "validator/lib/isEmail.js";
+import isISO8601 from "validator/lib/isISO8601.js";
+import isURL from "validator/lib/isURL.js";
+import isUUID from "validator/lib/isUUID.js";
 
 if (!FormatRegistry.Has("date")) {
   FormatRegistry.Set("date", (value) => {
