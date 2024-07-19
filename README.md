@@ -1,12 +1,12 @@
-# Typebox Extensions
+# TypeBox Extensions
 
 [![License](https://img.shields.io/github/license/jcwillox/typebox-x?style=flat-square)](https://github.com/jcwillox/typebox-x/blob/main/LICENSE)
-[![Version](https://img.shields.io/npm/v/typebox-x?style=flat-square)](https://www.npmjs.com/package/typebox-x)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/typebox-x?style=flat-square)](https://bundlephobia.com/package/typebox-x)
-[![Publish Size](https://flat.badgen.net/packagephobia/publish/typebox-x)](https://packagephobia.com/result?p=typebox-x)
+[![Version](https://img.shields.io/npm/v/@jcwillox/typebox-x?style=flat-square)](https://www.npmjs.com/package/@jcwillox/typebox-x)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@jcwillox/typebox-x?style=flat-square)](https://bundlephobia.com/package/@jcwillox/typebox-x)
+[![Publish Size](https://flat.badgen.net/packagephobia/publish/@jcwillox/typebox-x)](https://packagephobia.com/result?p=@jcwillox/typebox-x)
 [![Code style](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
-Typebox Extensions or (typebox-x) is a utility library based around the [sinclairzx81/typebox](https://github.com/sinclairzx81/typebox) schema builder and validation library.
+TypeBox extensions (typebox-x) is a utility library based around the [sinclairzx81/typebox](https://github.com/sinclairzx81/typebox) schema builder and validation library.
 
 **Features**
 
@@ -14,11 +14,8 @@ Typebox Extensions or (typebox-x) is a utility library based around the [sinclai
 - Additional kinds and shorthands, e.g. `t.UUID`.
 - Built in configuration for common formats, e.g. `date`, `email`, `uri`.
 - Built in support for [NestJS](https://nestjs.com)
--
 
 ## Install
-
-**Install the package**:
 
 ```bash
 pnpm add @jcwillox/typebox-x @sinclair/typebox
