@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      validator:
+        specifier: ^13.12.0
+        version: 13.12.0
     devDependencies:
       '@nestjs/common':
         specifier: 10.3.10
@@ -65,9 +69,6 @@ importers:
       typescript:
         specifier: 5.5.3
         version: 5.5.3
-      validator:
-        specifier: 13.12.0
-        version: 13.12.0
 
 packages:
 
