@@ -4,7 +4,7 @@
   "description": "Tools for working with TypeBox",
   "author": "Josh Willox <joshwillox@gmail.com> (https://github.com/jcwillox/)",
   "license": "MIT",
-  "repository": "jcwillox/react-query-ofetch",
+  "repository": "jcwillox/typebox-x",
   "type": "module",
   "keywords": [
     "nestjs",
