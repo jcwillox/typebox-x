@@ -1,5 +1,6 @@
 import {
   ObjectOptions,
+  SchemaOptions,
   StringOptions,
   TRecord,
   TSchema,
@@ -7,6 +8,7 @@ import {
   TTransform,
   Type as t,
 } from "@sinclair/typebox";
+import { TUnionEnum, UnionEnum } from "./experimental.ts";
 
 export function Nullable<T extends TSchema>(schema: T) {
   return t.Union([schema, t.Null()]);
@@ -47,4 +49,12 @@ export function RecordString<T extends TSchema>(
     additionalProperties: schema,
     ...options,
   });
+}
+
+/** Creates a union of strings with a `enum` schema representation */
+export function StringEnum<T extends string[]>(
+  values: [...T],
+  options?: SchemaOptions,
+): TUnionEnum<T> {
+  return UnionEnum(values, { type: "string", ...options });
 }

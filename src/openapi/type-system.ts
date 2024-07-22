@@ -4,6 +4,7 @@ import {
   Nullable,
   Nullish,
   RecordString,
+  StringEnum,
   UUID,
   UnionEnum,
   UnionOneOf,
@@ -17,4 +18,5 @@ export const t = Object.assign({}, Type, {
   UUID,
   DateString,
   RecordString,
+  StringEnum,
 });
