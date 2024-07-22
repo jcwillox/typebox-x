@@ -20,7 +20,7 @@ import {
   ApiResponse,
 } from "@nestjs/swagger";
 import type { TObject, TSchema } from "@sinclair/typebox";
-import { getParamSchema, getParamSchemas } from "../openapi";
+import { downgradeSchema, getParamSchema, getParamSchemas } from "../openapi";
 import { TypeBoxInterceptor } from "./interceptors.ts";
 import { TypeboxPipe } from "./pipes.ts";
 
@@ -60,30 +60,18 @@ export type TypeBoxOptions = {
    */
   params?: Record<string, TSchema>;
   /**
-   * Define which schemas are required.
+   * Simplify nullable schemas for anyOf unions to using the `nullable` keyword.
    *
-   * In development errors will be thrown during validation if a property is used but missing
-   * a corresponding schema. In production the property will be set to an empty object.
+   * This is only done on the schema provided to the openapi docs, not the actual validation schema.
    *
-   * E.g. a get request missing a `query` schema will throw an error if it receives
-   * a non-empty query params object.
-   *
-   * By default, only param schemas are optional.
+   * @default true
    */
-  requiredSchemas?: {
-    /** @default true */
-    query?: boolean;
-    /** @default true */
-    body?: boolean;
-    /** @default true */
-    response?: boolean;
-    /** @default false */
-    params?: boolean;
-  };
+  downgradeSchema?: boolean;
 };
 
 const getTypeBoxDecorators = (status: number, options?: TypeBoxOptions) => {
   if (!options) return [];
+  options.downgradeSchema ??= true;
   const decorators: MethodDecorator[] = [];
   if (options.summary || options.description) {
     decorators.push(
@@ -97,20 +85,32 @@ const getTypeBoxDecorators = (status: number, options?: TypeBoxOptions) => {
     decorators.push(UsePipes(new TypeboxPipe(options)));
   }
   if (options.query) {
-    decorators.push(...getParamSchemas(options.query).map(ApiQuery));
+    const schema = options.downgradeSchema
+      ? downgradeSchema(options.query)
+      : options.query;
+    decorators.push(...getParamSchemas(schema).map(ApiQuery));
   }
   if (options.body) {
-    decorators.push(ApiBody({ schema: options.body }));
+    const schema = options.downgradeSchema
+      ? downgradeSchema(options.body)
+      : options.body;
+    decorators.push(ApiBody({ schema }));
   }
   if (options.response) {
+    const schema = options.downgradeSchema
+      ? downgradeSchema(options.response)
+      : options.response;
     decorators.push(
       UseInterceptors(new TypeBoxInterceptor(options)),
-      ApiResponse({ schema: options.response, status }),
+      ApiResponse({ schema, status }),
     );
   }
   if (options.params) {
     for (const key in options.params) {
-      decorators.push(ApiParam(getParamSchema(key, options.params[key], true)));
+      const schema = options.downgradeSchema
+        ? downgradeSchema(options.params[key])
+        : options.params[key];
+      decorators.push(ApiParam(getParamSchema(key, schema, true)));
     }
   }
   return decorators;
