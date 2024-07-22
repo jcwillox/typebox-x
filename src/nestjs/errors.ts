@@ -19,6 +19,7 @@ export class TypeBoxValidationError<T extends TSchema> extends TypeBoxError {
   readonly value: unknown;
   readonly error: ValueError;
   readonly errors: ValueErrorIterator;
+  readonly cause: TransformDecodeCheckError | TransformEncodeCheckError;
 
   constructor(
     err: TransformDecodeCheckError | TransformEncodeCheckError,
@@ -29,5 +30,6 @@ export class TypeBoxValidationError<T extends TSchema> extends TypeBoxError {
     this.value = err.value;
     this.error = err.error;
     this.errors = compiler.Errors(err.value);
+    this.cause = err;
   }
 }
