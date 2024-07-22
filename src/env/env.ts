@@ -1,5 +1,6 @@
-import type { StaticDecode, TSchema } from "@sinclair/typebox";
-import { Value } from "@sinclair/typebox/value";
+import { StaticDecode, TSchema, TypeBoxError } from "@sinclair/typebox";
+import { ValueError } from "@sinclair/typebox/errors";
+import { TransformDecodeCheckError, Value } from "@sinclair/typebox/value";
 import { MergedValueError, mergeErrors } from "../tools";
 
 const RED = "\x1b[31m";
@@ -11,6 +12,14 @@ const GREEN = "\x1b[32m";
 const formatError = (e: MergedValueError) =>
   `  - ${GREEN}${e.path.slice(1)}${RESET}: ${YELLOW}${e.value}${RESET}, ${CYAN}` +
   `${e.errors.map((x) => x.message).join(`${RESET}, ${CYAN}`)}${RESET}`;
+
+export class TypeBoxDecodeEnvError extends TypeBoxError {
+  readonly error: ValueError;
+  constructor(message: string, error: ValueError) {
+    super(message);
+    this.error = error;
+  }
+}
 
 /**
  * Create an object from environment variables.
@@ -38,13 +47,16 @@ export function createEnv<T extends TSchema>(
   try {
     return Value.Decode(schema, value);
   } catch (err) {
-    console.error(
-      `${RED}Configuration is not valid:${RESET}\n` +
-        mergeErrors(Value.Errors(schema, value))
-          .map((x) => formatError(x))
-          .join("\n") +
-        "\n",
-    );
+    if (err instanceof TransformDecodeCheckError) {
+      console.error(
+        `${RED}Configuration is not valid:${RESET}\n` +
+          mergeErrors(Value.Errors(schema, value))
+            .map((x) => formatError(x))
+            .join("\n") +
+          "\n",
+      );
+      throw new TypeBoxDecodeEnvError(err.message, err.error);
+    }
     throw err;
   }
 }
