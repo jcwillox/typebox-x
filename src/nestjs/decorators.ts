@@ -19,7 +19,7 @@ import {
   ApiQuery,
   ApiResponse,
 } from "@nestjs/swagger";
-import type { TObject, TSchema } from "@sinclair/typebox";
+import { TObject, TSchema } from "@sinclair/typebox";
 import { downgradeSchema, getParamSchema, getParamSchemas } from "../openapi";
 import { TypeBoxInterceptor } from "./interceptors.ts";
 import { TypeboxPipe } from "./pipes.ts";
@@ -116,28 +116,48 @@ const getTypeBoxDecorators = (status: number, options?: TypeBoxOptions) => {
   return decorators;
 };
 
-const createTypeBoxMethod =
-  (method: (path?: string | string[]) => MethodDecorator, status: number) =>
+const createRequestMethod =
+  (
+    method: (path?: string | string[]) => MethodDecorator,
+    status: number,
+    defaults?: TypeBoxOptions,
+  ) =>
   (
     pathOrOptions?: string | string[] | TypeBoxOptions,
     options?: TypeBoxOptions,
   ): MethodDecorator => {
-    const isFirstPath =
+    const hasPath =
       typeof pathOrOptions === "string" || Array.isArray(pathOrOptions);
-    const path = isFirstPath ? pathOrOptions : undefined;
-    const opts = isFirstPath ? options : pathOrOptions;
-    return applyDecorators(method(path), ...getTypeBoxDecorators(status, opts));
+    return applyDecorators(
+      method(hasPath ? pathOrOptions : undefined),
+      ...getTypeBoxDecorators(status, {
+        ...defaults,
+        ...(hasPath ? options : pathOrOptions),
+      }),
+    );
   };
 
-export const TypeBoxPost = createTypeBoxMethod(NestPost, 201);
-export const TypeBoxGet = createTypeBoxMethod(NestGet, 200);
-export const TypeBoxDelete = createTypeBoxMethod(NestDelete, 204);
-export const TypeBoxPut = createTypeBoxMethod(NestPut, 200);
-export const TypeBoxPatch = createTypeBoxMethod(NestPatch, 200);
-export const TypeBoxOptions = createTypeBoxMethod(NestOptions, 200);
-export const TypeBoxHead = createTypeBoxMethod(NestHead, 200);
-export const TypeBoxAll = createTypeBoxMethod(NestAll, 200);
-export const TypeBoxSearch = createTypeBoxMethod(NestSearch, 200);
+export const createRequestMethods = (defaultOptions?: TypeBoxOptions) => ({
+  Post: createRequestMethod(NestPost, 201, defaultOptions),
+  Get: createRequestMethod(NestGet, 200, defaultOptions),
+  Delete: createRequestMethod(NestDelete, 204, defaultOptions),
+  Put: createRequestMethod(NestPut, 200, defaultOptions),
+  Patch: createRequestMethod(NestPatch, 200, defaultOptions),
+  Options: createRequestMethod(NestOptions, 200, defaultOptions),
+  Head: createRequestMethod(NestHead, 200, defaultOptions),
+  All: createRequestMethod(NestAll, 200, defaultOptions),
+  Search: createRequestMethod(NestSearch, 200, defaultOptions),
+});
+
+export const TypeBoxPost = createRequestMethod(NestPost, 201);
+export const TypeBoxGet = createRequestMethod(NestGet, 200);
+export const TypeBoxDelete = createRequestMethod(NestDelete, 204);
+export const TypeBoxPut = createRequestMethod(NestPut, 200);
+export const TypeBoxPatch = createRequestMethod(NestPatch, 200);
+export const TypeBoxOptions = createRequestMethod(NestOptions, 200);
+export const TypeBoxHead = createRequestMethod(NestHead, 200);
+export const TypeBoxAll = createRequestMethod(NestAll, 200);
+export const TypeBoxSearch = createRequestMethod(NestSearch, 200);
 
 export {
   TypeBoxPost as Post,
