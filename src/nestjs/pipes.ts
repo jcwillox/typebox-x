@@ -1,4 +1,5 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from "@nestjs/common";
+import { TypeGuard } from "@sinclair/typebox";
 import { TransformDecodeCheckError, Value } from "@sinclair/typebox/value";
 import { cacheCompile } from "../tools";
 import { TypeBoxOptions } from "./decorators.ts";
@@ -38,7 +39,8 @@ export class TypeboxPipe implements PipeTransform {
       const schema = this.options.params[metadata.data];
       if (!schema) return value;
       const compiler = cacheCompile(schema);
-      value = Value.Clean(schema, value);
+      if (TypeGuard.IsArray(schema) && typeof value === "string")
+        value = value.split(",");
       value = Value.Convert(schema, value);
       try {
         return compiler.Decode(value);

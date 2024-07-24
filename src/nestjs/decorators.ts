@@ -56,7 +56,7 @@ export type TypeBoxOptions = {
    *
    * You can provide a single schema for all path params or a schema for each path param.
    *
-   * Path params will be cleaned, validated and decoded.
+   * Path params will be validated and decoded.
    */
   params?: Record<string, TSchema>;
   /**
