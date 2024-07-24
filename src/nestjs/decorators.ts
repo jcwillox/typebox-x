@@ -141,7 +141,7 @@ const createRequestMethod =
 export const createRequestMethods = (defaultOptions?: TypeBoxOptions) => ({
   Post: createRequestMethod(NestPost, 201, defaultOptions),
   Get: createRequestMethod(NestGet, 200, defaultOptions),
-  Delete: createRequestMethod(NestDelete, 204, defaultOptions),
+  Delete: createRequestMethod(NestDelete, 200, defaultOptions),
   Put: createRequestMethod(NestPut, 200, defaultOptions),
   Patch: createRequestMethod(NestPatch, 200, defaultOptions),
   Options: createRequestMethod(NestOptions, 200, defaultOptions),
@@ -152,7 +152,7 @@ export const createRequestMethods = (defaultOptions?: TypeBoxOptions) => ({
 
 export const TypeBoxPost = createRequestMethod(NestPost, 201);
 export const TypeBoxGet = createRequestMethod(NestGet, 200);
-export const TypeBoxDelete = createRequestMethod(NestDelete, 204);
+export const TypeBoxDelete = createRequestMethod(NestDelete, 200);
 export const TypeBoxPut = createRequestMethod(NestPut, 200);
 export const TypeBoxPatch = createRequestMethod(NestPatch, 200);
 export const TypeBoxOptions = createRequestMethod(NestOptions, 200);
