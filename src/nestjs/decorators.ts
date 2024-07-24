@@ -61,6 +61,7 @@ export type TypeBoxOptions = {
   params?: Record<string, TSchema>;
   /**
    * Simplify nullable schemas for anyOf unions to using the `nullable` keyword.
+   * Add `enum` to literal `const` string schemas.
    *
    * This is only done on the schema provided to the openapi docs, not the actual validation schema.
    *

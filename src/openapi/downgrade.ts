@@ -27,7 +27,16 @@ export function downgradeSchema<T extends TSchema>(schema: T): T {
     ) {
       const mainSchema = schema.anyOf.find((s) => !TypeGuard.IsNull(s));
       if (mainSchema) return { ...mainSchema, nullable: true } as unknown as T;
+    } else {
+      return { ...schema, anyOf: schema.anyOf.map(downgradeSchema) };
     }
+  }
+  if (TypeGuard.IsLiteralString(schema)) {
+    return {
+      ...schema,
+      type: "string",
+      enum: [schema.const],
+    };
   }
   return schema;
 }
