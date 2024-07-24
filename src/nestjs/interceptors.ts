@@ -8,7 +8,7 @@ import { TransformEncodeCheckError, Value } from "@sinclair/typebox/value";
 import { map } from "rxjs";
 import { cacheCompile } from "../tools";
 import { TypeBoxOptions } from "./decorators.ts";
-import { TypeBoxValidationError } from "./errors.ts";
+import { TypeBoxMissingSchemaError, TypeBoxValidationError } from "./errors.ts";
 
 @Injectable()
 export class TypeBoxInterceptor implements NestInterceptor {
@@ -18,7 +18,11 @@ export class TypeBoxInterceptor implements NestInterceptor {
     const compiler = cacheCompile(this.options.response);
     return next.handle().pipe(
       map((value) => {
-        if (!this.options.response) return value;
+        if (!this.options.response) {
+          if (this.options.required?.response)
+            throw new TypeBoxMissingSchemaError("response");
+          return value;
+        }
         value = Value.Clean(this.options.response, value);
         try {
           return compiler.Encode(value);

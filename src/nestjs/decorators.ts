@@ -68,35 +68,65 @@ export type TypeBoxOptions = {
    * @default true
    */
   downgradeSchema?: boolean;
+  /**
+   * Define which schemas are required.
+   *
+   * If a schema is marked as required but missing during validation, it will
+   * throw a `TypeBoxMissingSchemaError`.
+   *
+   * You likely don't want to throw errors in production as users could provide values for schemas that
+   * you don't use, and you still want the endpoint to function correctly, even if they provide query
+   * params for an endpoint that doesn't use query params. However, in development this is likely an
+   * endpoint that is missing a schema.
+   *
+   * For example a GET request missing a `query` schema will throw an error if it receives a non-empty
+   * query params object.
+   */
+  required?: {
+    query?: boolean;
+    body?: boolean;
+    response?: boolean;
+    params?: boolean;
+  };
 };
 
 const getTypeBoxDecorators = (status: number, options?: TypeBoxOptions) => {
   if (!options) return [];
   options.downgradeSchema ??= true;
   const decorators: MethodDecorator[] = [];
-  if (options.summary || options.description) {
+
+  // add operation metadata
+  if (options.summary || options.description)
     decorators.push(
       ApiOperation({
         summary: options.summary,
         description: options.description,
       }),
     );
-  }
-  if (options.query || options.body || options.params) {
+
+  // attach validation pipe
+  const required = options.required;
+  const isRequired = required?.query || required?.body || required?.params;
+  if (isRequired || options.query || options.body || options.params)
     decorators.push(UsePipes(new TypeboxPipe(options)));
-  }
+
+  // add query schema
   if (options.query) {
     const schema = options.downgradeSchema
       ? downgradeSchema(options.query)
       : options.query;
     decorators.push(...getParamSchemas(schema).map(ApiQuery));
   }
+
+  // add body schema
   if (options.body) {
     const schema = options.downgradeSchema
       ? downgradeSchema(options.body)
       : options.body;
     decorators.push(ApiBody({ schema }));
   }
+
+  // add response schema
   if (options.response) {
     const schema = options.downgradeSchema
       ? downgradeSchema(options.response)
@@ -106,6 +136,8 @@ const getTypeBoxDecorators = (status: number, options?: TypeBoxOptions) => {
       ApiResponse({ schema, status }),
     );
   }
+
+  // add param schemas
   if (options.params) {
     for (const key in options.params) {
       const schema = options.downgradeSchema

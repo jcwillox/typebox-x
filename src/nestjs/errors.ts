@@ -33,3 +33,19 @@ export class TypeBoxValidationError<T extends TSchema> extends TypeBoxError {
     this.cause = err;
   }
 }
+
+/**
+ * Thrown during validation when a schema is missing from the options object.
+ */
+export class TypeBoxMissingSchemaError extends TypeBoxError {
+  constructor(
+    public readonly type: string,
+    public readonly param?: string,
+  ) {
+    super(
+      type === "param"
+        ? `Missing schema for "${param}" ${type}`
+        : `Missing ${type} schema`,
+    );
+  }
+}
