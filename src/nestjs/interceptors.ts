@@ -8,7 +8,7 @@ import { TransformEncodeCheckError, Value } from "@sinclair/typebox/value";
 import { map } from "rxjs";
 import { cacheCompile } from "../tools";
 import { TypeBoxOptions } from "./decorators.ts";
-import { TypeBoxMissingSchemaError, TypeBoxValidationError } from "./errors.ts";
+import { TypeBoxMissingSchemaError, throwValidationError } from "./errors.ts";
 
 @Injectable()
 export class TypeBoxInterceptor implements NestInterceptor {
@@ -28,8 +28,8 @@ export class TypeBoxInterceptor implements NestInterceptor {
           return compiler.Encode(value);
         } catch (err) {
           if (err instanceof TransformEncodeCheckError)
-            throw new TypeBoxValidationError(err, compiler);
-          throw err;
+            throwValidationError(err, compiler, this.options.errorFactory);
+          else throw err;
         }
       }),
     );

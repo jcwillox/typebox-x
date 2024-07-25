@@ -21,6 +21,7 @@ import {
 } from "@nestjs/swagger";
 import { TObject, TSchema } from "@sinclair/typebox";
 import { downgradeSchema, getParamSchema, getParamSchemas } from "../openapi";
+import { TypeBoxValidationError } from "./errors.ts";
 import { TypeBoxInterceptor } from "./interceptors.ts";
 import { TypeboxPipe } from "./pipes.ts";
 
@@ -88,6 +89,12 @@ export type TypeBoxOptions = {
     response?: boolean;
     params?: boolean;
   };
+  /**
+   * Provide a custom error factory for the validation pipe.
+   *
+   * Should return an error to be thrown, or a falsy value to ignore the error.
+   */
+  errorFactory?: (error: TypeBoxValidationError<TSchema>) => Error | undefined;
 };
 
 const getTypeBoxDecorators = (status: number, options?: TypeBoxOptions) => {

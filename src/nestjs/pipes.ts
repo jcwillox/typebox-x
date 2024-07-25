@@ -3,7 +3,7 @@ import { TypeGuard } from "@sinclair/typebox";
 import { TransformDecodeCheckError, Value } from "@sinclair/typebox/value";
 import { cacheCompile } from "../tools";
 import { TypeBoxOptions } from "./decorators.ts";
-import { TypeBoxMissingSchemaError, TypeBoxValidationError } from "./errors.ts";
+import { TypeBoxMissingSchemaError, throwValidationError } from "./errors.ts";
 
 const isEmpty = (value: unknown) => {
   if (!value) return true;
@@ -29,8 +29,8 @@ export class TypeboxPipe implements PipeTransform {
         return compiler.Decode(value);
       } catch (err) {
         if (err instanceof TransformDecodeCheckError)
-          throw new TypeBoxValidationError(err, compiler);
-        throw err;
+          throwValidationError(err, compiler, this.options.errorFactory);
+        else throw err;
       }
     }
 
@@ -47,8 +47,8 @@ export class TypeboxPipe implements PipeTransform {
         return compiler.Decode(value);
       } catch (err) {
         if (err instanceof TransformDecodeCheckError)
-          throw new TypeBoxValidationError(err, compiler);
-        throw err;
+          throwValidationError(err, compiler, this.options.errorFactory);
+        else throw err;
       }
     }
 
@@ -67,8 +67,8 @@ export class TypeboxPipe implements PipeTransform {
         return compiler.Decode(value);
       } catch (err) {
         if (err instanceof TransformDecodeCheckError)
-          throw new TypeBoxValidationError(err, compiler);
-        throw err;
+          throwValidationError(err, compiler, this.options.errorFactory);
+        else throw err;
       }
     }
 

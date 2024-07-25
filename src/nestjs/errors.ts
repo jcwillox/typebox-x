@@ -6,6 +6,7 @@ import {
   TransformEncodeCheckError,
   ValueError,
 } from "@sinclair/typebox/value";
+import { TypeBoxOptions } from "./decorators.ts";
 
 /**
  * Thrown when a validation check fails from either validation pipe or
@@ -31,6 +32,20 @@ export class TypeBoxValidationError<T extends TSchema> extends TypeBoxError {
     this.error = err.error;
     this.errors = compiler.Errors(err.value);
     this.cause = err;
+  }
+}
+
+export function throwValidationError<T extends TSchema>(
+  err: TransformDecodeCheckError | TransformEncodeCheckError,
+  compiler: TypeCheck<T>,
+  errorFactory: TypeBoxOptions["errorFactory"],
+) {
+  const validationError = new TypeBoxValidationError(err, compiler);
+  if (errorFactory) {
+    const newErr = errorFactory(validationError);
+    if (newErr) throw newErr;
+  } else {
+    throw validationError;
   }
 }
 
