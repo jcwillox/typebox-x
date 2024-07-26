@@ -21,11 +21,11 @@ import {
 } from "@nestjs/swagger";
 import { TObject, TSchema } from "@sinclair/typebox";
 import { downgradeSchema, getParamSchema, getParamSchemas } from "../openapi";
-import { TypeBoxValidationError } from "./errors.ts";
+import { TypeBoxMissingSchemaError, TypeBoxValidationError } from "./errors.ts";
 import { TypeBoxInterceptor } from "./interceptors.ts";
 import { TypeboxPipe } from "./pipes.ts";
 
-export type TypeBoxOptions = {
+export type TypeBoxOpts = {
   /**
    * Provide a summary for the endpoint.
    */
@@ -88,6 +88,12 @@ export type TypeBoxOptions = {
     body?: boolean;
     response?: boolean;
     params?: boolean;
+    /**
+     * Provide a custom error factory for the required schema errors.
+     *
+     * Should return an error to be thrown, or a falsy value to ignore the error.
+     */
+    errorFactory?: (error: TypeBoxMissingSchemaError) => Error | undefined;
   };
   /**
    * Provide a custom error factory for the validation pipe.
@@ -97,7 +103,7 @@ export type TypeBoxOptions = {
   errorFactory?: (error: TypeBoxValidationError<TSchema>) => Error | undefined;
 };
 
-const getTypeBoxDecorators = (status: number, options?: TypeBoxOptions) => {
+const getTypeBoxDecorators = (status: number, options?: TypeBoxOpts) => {
   if (!options) return [];
   options.downgradeSchema ??= true;
   const decorators: MethodDecorator[] = [];
@@ -142,6 +148,8 @@ const getTypeBoxDecorators = (status: number, options?: TypeBoxOptions) => {
       UseInterceptors(new TypeBoxInterceptor(options)),
       ApiResponse({ schema, status }),
     );
+  } else if (required?.response) {
+    decorators.push(UseInterceptors(new TypeBoxInterceptor(options)));
   }
 
   // add param schemas
@@ -160,11 +168,11 @@ const createRequestMethod =
   (
     method: (path?: string | string[]) => MethodDecorator,
     status: number,
-    defaults?: TypeBoxOptions,
+    defaults?: TypeBoxOpts,
   ) =>
   (
-    pathOrOptions?: string | string[] | TypeBoxOptions,
-    options?: TypeBoxOptions,
+    pathOrOptions?: string | string[] | TypeBoxOpts,
+    options?: TypeBoxOpts,
   ): MethodDecorator => {
     const hasPath =
       typeof pathOrOptions === "string" || Array.isArray(pathOrOptions);
@@ -177,7 +185,7 @@ const createRequestMethod =
     );
   };
 
-export const createRequestMethods = (defaultOptions?: TypeBoxOptions) => ({
+export const createRequestMethods = (defaultOptions?: TypeBoxOpts) => ({
   Post: createRequestMethod(NestPost, 201, defaultOptions),
   Get: createRequestMethod(NestGet, 200, defaultOptions),
   Delete: createRequestMethod(NestDelete, 200, defaultOptions),

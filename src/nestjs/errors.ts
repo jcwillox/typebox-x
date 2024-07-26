@@ -6,7 +6,7 @@ import {
   TransformEncodeCheckError,
   ValueError,
 } from "@sinclair/typebox/value";
-import { TypeBoxOptions } from "./decorators.ts";
+import { TypeBoxOpts } from "./decorators.ts";
 
 /**
  * Thrown when a validation check fails from either validation pipe or
@@ -38,7 +38,7 @@ export class TypeBoxValidationError<T extends TSchema> extends TypeBoxError {
 export function throwValidationError<T extends TSchema>(
   err: TransformDecodeCheckError | TransformEncodeCheckError,
   compiler: TypeCheck<T>,
-  errorFactory: TypeBoxOptions["errorFactory"],
+  errorFactory: TypeBoxOpts["errorFactory"],
 ) {
   const validationError = new TypeBoxValidationError(err, compiler);
   if (errorFactory) {
@@ -62,5 +62,19 @@ export class TypeBoxMissingSchemaError extends TypeBoxError {
         ? `Missing schema for "${param}" ${type}`
         : `Missing ${type} schema`,
     );
+  }
+}
+
+export function throwMissingSchemaError(
+  type: string,
+  param: string | undefined,
+  options: TypeBoxOpts,
+) {
+  const schemaError = new TypeBoxMissingSchemaError(type, param);
+  if (options.required?.errorFactory) {
+    const newErr = options.required.errorFactory(schemaError);
+    if (newErr) throw newErr;
+  } else {
+    throw schemaError;
   }
 }

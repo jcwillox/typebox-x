@@ -7,22 +7,23 @@ import {
 import { TransformEncodeCheckError, Value } from "@sinclair/typebox/value";
 import { map } from "rxjs";
 import { cacheCompile } from "../tools";
-import { TypeBoxOptions } from "./decorators.ts";
-import { TypeBoxMissingSchemaError, throwValidationError } from "./errors.ts";
+import type { TypeBoxOpts } from "./decorators.ts";
+import { throwMissingSchemaError, throwValidationError } from "./errors.ts";
 
 @Injectable()
 export class TypeBoxInterceptor implements NestInterceptor {
-  constructor(private readonly options: TypeBoxOptions) {}
+  constructor(private readonly options: TypeBoxOpts) {}
   intercept(_: ExecutionContext, next: CallHandler) {
-    if (!this.options.response) return next.handle();
-    const compiler = cacheCompile(this.options.response);
+    if (!this.options.response && !this.options.required?.response)
+      return next.handle();
     return next.handle().pipe(
       map((value) => {
         if (!this.options.response) {
-          if (this.options.required?.response)
-            throw new TypeBoxMissingSchemaError("response");
+          if (value !== undefined && this.options.required?.response)
+            throwMissingSchemaError("response", undefined, this.options);
           return value;
         }
+        const compiler = cacheCompile(this.options.response);
         value = Value.Clean(this.options.response, value);
         try {
           return compiler.Encode(value);
@@ -31,6 +32,7 @@ export class TypeBoxInterceptor implements NestInterceptor {
             throwValidationError(err, compiler, this.options.errorFactory);
           else throw err;
         }
+        return value;
       }),
     );
   }

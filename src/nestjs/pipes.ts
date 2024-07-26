@@ -2,8 +2,8 @@ import { ArgumentMetadata, Injectable, PipeTransform } from "@nestjs/common";
 import { TypeGuard } from "@sinclair/typebox";
 import { TransformDecodeCheckError, Value } from "@sinclair/typebox/value";
 import { cacheCompile } from "../tools";
-import { TypeBoxOptions } from "./decorators.ts";
-import { TypeBoxMissingSchemaError, throwValidationError } from "./errors.ts";
+import type { TypeBoxOpts } from "./decorators.ts";
+import { throwMissingSchemaError, throwValidationError } from "./errors.ts";
 
 const isEmpty = (value: unknown) => {
   if (!value) return true;
@@ -14,13 +14,13 @@ const isEmpty = (value: unknown) => {
 
 @Injectable()
 export class TypeboxPipe implements PipeTransform {
-  constructor(private readonly options: TypeBoxOptions) {}
+  constructor(private readonly options: TypeBoxOpts) {}
   transform(value: unknown, metadata: ArgumentMetadata) {
     const required = this.options.required;
 
     if (metadata.type === "body" && !this.options.body && required?.body)
       if (!isEmpty(value))
-        throw new TypeBoxMissingSchemaError(metadata.type, metadata.data);
+        throwMissingSchemaError(metadata.type, metadata.data, this.options);
 
     if (metadata.type === "body" && this.options.body) {
       const compiler = cacheCompile(this.options.body);
@@ -36,7 +36,7 @@ export class TypeboxPipe implements PipeTransform {
 
     if (metadata.type === "query" && !this.options.query && required?.query)
       if (!isEmpty(value))
-        throw new TypeBoxMissingSchemaError(metadata.type, metadata.data);
+        throwMissingSchemaError(metadata.type, metadata.data, this.options);
 
     if (metadata.type === "query" && this.options.query) {
       const compiler = cacheCompile(this.options.query);
@@ -56,7 +56,7 @@ export class TypeboxPipe implements PipeTransform {
       const schema = this.options.params[metadata.data];
       if (!schema) {
         if (required?.params)
-          throw new TypeBoxMissingSchemaError(metadata.type, metadata.data);
+          throwMissingSchemaError(metadata.type, metadata.data, this.options);
         return value;
       }
       const compiler = cacheCompile(schema);
