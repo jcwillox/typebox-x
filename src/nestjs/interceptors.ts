@@ -39,9 +39,11 @@ export class TypeBoxInterceptor implements NestInterceptor {
           try {
             return Value.Clean(this.options.response, compiler.Encode(value));
           } catch (err) {
-            if (err instanceof TransformEncodeCheckError)
+            if (err instanceof TransformEncodeCheckError) {
               throwValidationError(err, compiler, this.options.errorFactory);
-            else throw err;
+              return Value.Clean(this.options.response, err.value);
+            }
+            throw err;
           }
         }
 
