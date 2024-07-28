@@ -78,6 +78,14 @@ export type TypeBoxOpts = {
    */
   downgradeSchema?: boolean;
   /**
+   * Disable response validation
+   *
+   * Can improve performance if you are confident in the response schema.
+   *
+   * @default true
+   */
+  validateResponse?: boolean;
+  /**
    * Define which intersection schemas should be converted to composite schemas.
    *
    * Only top-level intersections are converted, nested intersections are left as is.

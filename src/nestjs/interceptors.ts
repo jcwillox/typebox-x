@@ -4,7 +4,12 @@ import {
   Injectable,
   NestInterceptor,
 } from "@nestjs/common";
-import { TransformEncodeCheckError, Value } from "@sinclair/typebox/value";
+import {
+  HasTransform,
+  TransformEncode,
+  TransformEncodeCheckError,
+  Value,
+} from "@sinclair/typebox/value";
 import { map } from "rxjs";
 import { cacheCompile } from "../tools";
 import type { TypeBoxOpts } from "./decorators.ts";
@@ -16,6 +21,11 @@ export class TypeBoxInterceptor implements NestInterceptor {
   intercept(_: ExecutionContext, next: CallHandler) {
     if (!this.options.response && !this.options.required?.response)
       return next.handle();
+
+    const hasTransform = this.options.response
+      ? HasTransform(this.options.response, [])
+      : false;
+
     return next.handle().pipe(
       map((value) => {
         if (!this.options.response) {
@@ -23,16 +33,23 @@ export class TypeBoxInterceptor implements NestInterceptor {
             throwMissingSchemaError("response", undefined, this.options);
           return value;
         }
-        const compiler = cacheCompile(this.options.response);
-        value = Value.Clean(this.options.response, value);
-        try {
-          return compiler.Encode(value);
-        } catch (err) {
-          if (err instanceof TransformEncodeCheckError)
-            throwValidationError(err, compiler, this.options.errorFactory);
-          else throw err;
+
+        if (this.options.validateResponse !== false) {
+          const compiler = cacheCompile(this.options.response);
+          try {
+            return Value.Clean(this.options.response, compiler.Encode(value));
+          } catch (err) {
+            if (err instanceof TransformEncodeCheckError)
+              throwValidationError(err, compiler, this.options.errorFactory);
+            else throw err;
+          }
         }
-        return value;
+
+        const encoded = hasTransform
+          ? TransformEncode(this.options.response, [], value)
+          : value;
+
+        return Value.Clean(this.options.response, encoded);
       }),
     );
   }
