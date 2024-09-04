@@ -43,6 +43,68 @@ const env = createEnv(
 console.log(env.BOOL_FLAG === true); // -> true
 ```
 
+## Variants
+
+**Nullable**
+
+- Wraps schema in a union with null.
+  ```ts
+  t.Nullable(t.String());
+  // t.Union([t.String(), t.Null()]);
+  ```
+
+**Nullish**
+
+- Wraps schema in an optional union with null.
+  ```ts
+  t.Nullish(t.String());
+  // t.Optional(t.Union([t.String(), t.Null()]));
+  ```
+
+**UUID**
+
+- Shorthand for string of format `uuid`.
+  ```ts
+  t.UUID();
+  // t.String({ format: "uuid" })
+  ```
+
+**DateString**
+
+- Uses `Transform` to convert a string to a `Date` object when decoding and from a `Date` object to a string when encoding.
+  ```ts
+  t.DateString();
+  ```
+
+**RecordString**
+
+- A replacement for `t.Record` that uses `t.String` as the key type, and adds the `additionalProperties` property, for backwards compatibility with OpenAPI 3.0.
+  ```ts
+  t.RecordString(t.Object({ one: t.String() }));
+  // Record<string, {a: string}>
+  ```
+  Equivalent to:
+  ```ts
+  t.Record(t.String(), schema, {
+    additionalProperties: schema,
+  });
+  ```
+
+**StringEnum**
+
+- Creates a union of strings with a `enum` schema representation
+  ```ts
+  t.StringEnum(["one", "two"]);
+  ```
+
+**LiteralEnum**
+
+- Drop-in replacement for `t.Literal` that adds the `type` and `enum` properties, for backwards compatibility with OpenAPI 3.0.
+- You should override `Literal` with this function, for OpenAPI 3.0 compatibility.
+  ```ts
+  t.LiteralEnum("one");
+  ```
+
 ## Formats
 
 Simply import `@jcwillox/typebox-x/formats` before you perform any validations, usually you'll want to do this in you entrypoint. If a format is already defined with the same name, it will not be overwritten.
