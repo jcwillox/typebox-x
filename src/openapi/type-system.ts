@@ -1,6 +1,7 @@
 import { Type } from "@sinclair/typebox";
 import {
   DateString,
+  LiteralEnum,
   Nullable,
   Nullish,
   RecordString,
@@ -19,4 +20,5 @@ export const t = Object.assign({}, Type, {
   DateString,
   RecordString,
   StringEnum,
+  LiteralEnum,
 });

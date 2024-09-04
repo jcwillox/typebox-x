@@ -2,6 +2,8 @@ import {
   ObjectOptions,
   SchemaOptions,
   StringOptions,
+  TLiteral,
+  TLiteralValue,
   TRecord,
   TSchema,
   TString,
@@ -57,4 +59,26 @@ export function StringEnum<T extends string[]>(
   options?: SchemaOptions,
 ): TUnionEnum<T> {
   return UnionEnum(values, { type: "string", ...options });
+}
+
+/**
+ * Drop-in replacement for `t.Literal` that adds the `type` and `enum` properties,
+ * for backwards compatibility with OpenAPI 3.0.
+ *
+ * You should override `Literal` with this function, for OpenAPI 3.0 compatibility.
+ */
+export function LiteralEnum<T extends TLiteralValue>(
+  value: T,
+  options?: SchemaOptions,
+): TLiteral<T> {
+  switch (typeof value) {
+    case "boolean":
+      return t.Literal(value, { type: "boolean", enum: [value], ...options });
+    case "number":
+      return t.Literal(value, { type: "number", enum: [value], ...options });
+    case "string":
+      return t.Literal(value, { type: "string", enum: [value], ...options });
+    default:
+      return t.Literal(value, options);
+  }
 }
