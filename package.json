@@ -17,6 +17,8 @@
     "dev": "tsup --watch",
     "build": "tsup --minify",
     "typecheck": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint . --cache --max-warnings=0 --ext js,cjs,mjs,jsx,ts,tsx",
     "lint:fix": "pnpm run lint --fix",
     "format": "prettier --cache --write .",
@@ -44,7 +46,8 @@
     "rxjs": "7.8.1",
     "tsup": "8.1.0",
     "tsx": "4.16.2",
-    "typescript": "5.5.3"
+    "typescript": "5.5.3",
+    "vitest": "2.0.5"
   },
   "peerDependencies": {
     "@nestjs/common": "^10.3.10",
