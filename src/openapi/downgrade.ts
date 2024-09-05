@@ -6,6 +6,33 @@ import { TSchema, TypeGuard } from "@sinclair/typebox";
  * (performs a partial clone on the schema)
  */
 export function downgradeSchema<T extends TSchema>(schema: T): T {
+  /* perform downgrades */
+  // downgrade nullable unions
+  if (TypeGuard.IsUnion(schema) && schema.anyOf.length === 2) {
+    const firstNull = TypeGuard.IsNull(schema.anyOf[0]);
+    const secondNull = TypeGuard.IsNull(schema.anyOf[1]);
+    if (firstNull || secondNull) {
+      return firstNull
+        ? ({ ...schema.anyOf[1], nullable: true } as unknown as T)
+        : ({ ...schema.anyOf[0], nullable: true } as unknown as T);
+    }
+  }
+
+  // downgrade literals
+  if (TypeGuard.IsLiteral(schema) && !(schema.enum && schema.type)) {
+    switch (typeof schema.const) {
+      case "boolean":
+        return { ...schema, type: "boolean", enum: [schema.const] };
+      case "number":
+        return { ...schema, type: "number", enum: [schema.const] };
+      case "string":
+        return { ...schema, type: "string", enum: [schema.const] };
+      default:
+        return schema;
+    }
+  }
+
+  /* recurse on nested properties */
   if (TypeGuard.IsArray(schema)) {
     schema = { ...schema, items: downgradeSchema(schema.items) };
   }
@@ -21,22 +48,8 @@ export function downgradeSchema<T extends TSchema>(schema: T): T {
     return { ...schema, allOf: schema.allOf.map(downgradeSchema) };
   }
   if (TypeGuard.IsUnion(schema)) {
-    if (
-      schema.anyOf.length === 2 &&
-      schema.anyOf.some((s) => TypeGuard.IsNull(s))
-    ) {
-      const mainSchema = schema.anyOf.find((s) => !TypeGuard.IsNull(s));
-      if (mainSchema) return { ...mainSchema, nullable: true } as unknown as T;
-    } else {
-      return { ...schema, anyOf: schema.anyOf.map(downgradeSchema) };
-    }
+    return { ...schema, anyOf: schema.anyOf.map(downgradeSchema) };
   }
-  if (TypeGuard.IsLiteralString(schema)) {
-    return {
-      ...schema,
-      type: "string",
-      enum: [schema.const],
-    };
-  }
+
   return schema;
 }
