@@ -19,13 +19,7 @@ import {
   ApiQuery,
   ApiResponse,
 } from "@nestjs/swagger";
-import {
-  TIntersect,
-  TObject,
-  TSchema,
-  Type,
-  TypeGuard,
-} from "@sinclair/typebox";
+import { TObject, TSchema } from "@sinclair/typebox";
 import { downgradeSchema, getParamSchema, getParamSchemas } from "../openapi";
 import { TypeBoxMissingSchemaError, TypeBoxValidationError } from "./errors.ts";
 import { TypeBoxInterceptor } from "./interceptors.ts";
@@ -43,11 +37,9 @@ export type TypeBoxOpts = {
   /**
    * Provide a schema for the query.
    *
-   * Query will be cleaned, validated and decoded.
-   *
-   * Top-level intersection schemas will be converted to composite schemas.
+   * Query will be cleaned, defaulted, converted, validated and decoded.
    */
-  query?: TObject | TIntersect;
+  query?: TObject;
   /**
    * Provide a schema for the request body.
    *
@@ -65,7 +57,7 @@ export type TypeBoxOpts = {
    *
    * You can provide a single schema for all path params or a schema for each path param.
    *
-   * Path params will be validated and decoded.
+   * Path params will be converted, validated and decoded.
    */
   params?: Record<string, TSchema>;
   /**
@@ -85,15 +77,6 @@ export type TypeBoxOpts = {
    * @default true
    */
   validateResponse?: boolean;
-  /**
-   * Define which intersection schemas should be converted to composite schemas.
-   *
-   * Only top-level intersections are converted, nested intersections are left as is.
-   */
-  mergeIntersection?: {
-    body?: boolean;
-    response?: boolean;
-  };
   /**
    * Define which schemas are required.
    *
@@ -132,22 +115,6 @@ const getTypeBoxDecorators = (status: number, options?: TypeBoxOpts) => {
   if (!options) return [];
   options.downgradeSchema ??= true;
   const decorators: MethodDecorator[] = [];
-
-  // merge intersection schemas
-  if (TypeGuard.IsIntersect(options.query)) {
-    const { allOf, ...rest } = options.query;
-    options.query = Type.Composite(allOf, rest);
-  }
-  if (options.mergeIntersection?.body)
-    if (TypeGuard.IsIntersect(options.body)) {
-      const { allOf, ...rest } = options.body;
-      options.body = Type.Composite(allOf, rest);
-    }
-  if (options.mergeIntersection?.response)
-    if (TypeGuard.IsIntersect(options.response)) {
-      const { allOf, ...rest } = options.response;
-      options.response = Type.Composite(allOf, rest);
-    }
 
   // add operation metadata
   if (options.summary || options.description)
