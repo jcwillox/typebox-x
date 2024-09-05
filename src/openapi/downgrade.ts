@@ -1,6 +1,49 @@
 import { TSchema, TypeGuard } from "@sinclair/typebox";
 
 /**
+ * Check if schema should be downgraded to OpenAPI 3.0.
+ *
+ * Should be run before `downgradeSchema` as a performance optimisation, to avoid having to partially clone
+ * the schema and perform the downgrades.
+ */
+export function shouldDowngradeSchema(schema: TSchema): boolean {
+  /* check if downgrade is needed */
+  // downgrade nullable unions
+  if (TypeGuard.IsUnion(schema) && schema.anyOf.length === 2) {
+    if (TypeGuard.IsNull(schema.anyOf[0]) || TypeGuard.IsNull(schema.anyOf[1]))
+      return true;
+  }
+  // downgrade literals
+  if (TypeGuard.IsLiteral(schema) && !(schema.enum && schema.type)) {
+    return true;
+  }
+
+  /* recurse on nested properties */
+  if (TypeGuard.IsArray(schema)) {
+    return shouldDowngradeSchema(schema.items);
+  } else if (TypeGuard.IsObject(schema)) {
+    for (const property in schema.properties) {
+      if (shouldDowngradeSchema(schema.properties[property])) {
+        return true;
+      }
+    }
+  } else if (TypeGuard.IsIntersect(schema)) {
+    for (const schema_ of schema.allOf) {
+      if (shouldDowngradeSchema(schema_)) {
+        return true;
+      }
+    }
+  } else if (TypeGuard.IsUnion(schema)) {
+    for (const schema_ of schema.anyOf) {
+      if (shouldDowngradeSchema(schema_)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Downgrade schema to OpenAPI 3.0 nullable format.
  *
  * (performs a partial clone on the schema)
