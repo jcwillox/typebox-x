@@ -78,21 +78,22 @@ export function downgradeSchema<T extends TSchema>(schema: T): T {
   /* recurse on nested properties */
   if (TypeGuard.IsArray(schema)) {
     schema = { ...schema, items: downgradeSchema(schema.items) };
-  }
-  if (TypeGuard.IsObject(schema)) {
+  } else if (TypeGuard.IsObject(schema)) {
     schema = { ...schema, properties: { ...schema.properties } };
     for (const property in schema.properties) {
       schema.properties[property] = downgradeSchema(
         schema.properties[property],
       );
     }
-  }
-  if (TypeGuard.IsIntersect(schema)) {
-    return { ...schema, allOf: schema.allOf.map(downgradeSchema) };
-  }
-  if (TypeGuard.IsUnion(schema)) {
-    return { ...schema, anyOf: schema.anyOf.map(downgradeSchema) };
+  } else if (TypeGuard.IsIntersect(schema)) {
+    schema = { ...schema, allOf: schema.allOf.map(downgradeSchema) };
+  } else if (TypeGuard.IsUnion(schema)) {
+    schema = { ...schema, anyOf: schema.anyOf.map(downgradeSchema) };
   }
 
   return schema;
+}
+
+export function downgradeSchemaIfNeeded(schema: TSchema): TSchema {
+  return shouldDowngradeSchema(schema) ? downgradeSchema(schema) : schema;
 }
