@@ -29,7 +29,12 @@ export class TypeboxPipe implements PipeTransform {
         return compiler.Decode(value);
       } catch (err) {
         if (err instanceof TransformDecodeCheckError)
-          throwValidationError(err, compiler, this.options.errorFactory);
+          throwValidationError(
+            err,
+            compiler,
+            this.options.errorFactory,
+            "body",
+          );
         else throw err;
       }
     }
@@ -47,7 +52,12 @@ export class TypeboxPipe implements PipeTransform {
         return compiler.Decode(value);
       } catch (err) {
         if (err instanceof TransformDecodeCheckError)
-          throwValidationError(err, compiler, this.options.errorFactory);
+          throwValidationError(
+            err,
+            compiler,
+            this.options.errorFactory,
+            "query",
+          );
         else throw err;
       }
     }
@@ -67,7 +77,13 @@ export class TypeboxPipe implements PipeTransform {
         return compiler.Decode(value);
       } catch (err) {
         if (err instanceof TransformDecodeCheckError)
-          throwValidationError(err, compiler, this.options.errorFactory);
+          throwValidationError(
+            err,
+            compiler,
+            this.options.errorFactory,
+            "param",
+            metadata.data,
+          );
         else throw err;
       }
     }

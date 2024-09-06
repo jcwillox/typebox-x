@@ -21,12 +21,18 @@ export class TypeBoxValidationError<T extends TSchema> extends TypeBoxError {
   readonly error: ValueError;
   readonly errors: ValueErrorIterator;
   readonly cause: TransformDecodeCheckError | TransformEncodeCheckError;
+  readonly type: string;
+  readonly param?: string;
 
   constructor(
     err: TransformDecodeCheckError | TransformEncodeCheckError,
     compiler: TypeCheck<T>,
+    type: "query" | "body" | "response" | "param",
+    param?: string,
   ) {
     super(err.message);
+    this.type = type;
+    this.param = param;
     this.schema = err.schema;
     this.value = err.value;
     this.error = err.error;
@@ -39,8 +45,15 @@ export function throwValidationError<T extends TSchema>(
   err: TransformDecodeCheckError | TransformEncodeCheckError,
   compiler: TypeCheck<T>,
   errorFactory: TypeBoxOpts["errorFactory"],
+  type: "query" | "body" | "response" | "param",
+  param?: string,
 ) {
-  const validationError = new TypeBoxValidationError(err, compiler);
+  const validationError = new TypeBoxValidationError(
+    err,
+    compiler,
+    type,
+    param,
+  );
   if (errorFactory) {
     const newErr = errorFactory(validationError);
     if (newErr) throw newErr;
