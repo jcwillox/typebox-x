@@ -1,4 +1,4 @@
-import type { TObject, TSchema } from "@sinclair/typebox";
+import { KindGuard, TObject, TSchema } from "@sinclair/typebox";
 
 type TParamSchema = {
   name: string;
@@ -25,4 +25,31 @@ export function getParamSchemas(obj: TObject) {
   return Object.entries(obj.properties).map(([name, schema]) =>
     getParamSchema(name, schema, obj.required?.includes(name)),
   );
+}
+
+/** Check if the schema has an `id` property. */
+export function hasSchemaId(schema: TSchema): boolean {
+  if (schema.$id) return true;
+  if (KindGuard.IsArray(schema)) {
+    return hasSchemaId(schema.items);
+  } else if (KindGuard.IsObject(schema)) {
+    for (const property in schema.properties) {
+      if (hasSchemaId(schema.properties[property])) {
+        return true;
+      }
+    }
+  } else if (KindGuard.IsIntersect(schema)) {
+    for (const schema_ of schema.allOf) {
+      if (hasSchemaId(schema_)) {
+        return true;
+      }
+    }
+  } else if (KindGuard.IsUnion(schema)) {
+    for (const schema_ of schema.anyOf) {
+      if (hasSchemaId(schema_)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
