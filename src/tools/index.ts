@@ -1,2 +1,2 @@
 export * from "./compile.ts";
-export * from "./utils.ts";
+export * from "./errors.ts";

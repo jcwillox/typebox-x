@@ -1,7 +1,7 @@
 import { StaticDecode, TSchema, TypeBoxError } from "@sinclair/typebox";
 import { ValueError } from "@sinclair/typebox/errors";
 import { TransformDecodeCheckError, Value } from "@sinclair/typebox/value";
-import { MergedValueError, mergeErrors } from "../tools";
+import { MergedNumericValueError, mergeErrors } from "../tools";
 
 const RED = "\x1b[31m";
 const RESET = "\x1b[0m";
@@ -9,9 +9,9 @@ const YELLOW = "\x1b[33m";
 const CYAN = "\x1b[36m";
 const GREEN = "\x1b[32m";
 
-const formatError = (e: MergedValueError) =>
+const formatError = (e: MergedNumericValueError) =>
   `  - ${GREEN}${e.path.slice(1)}${RESET}: ${YELLOW}${e.value}${RESET}, ${CYAN}` +
-  `${e.errors.map((x) => x.message).join(`${RESET}, ${CYAN}`)}${RESET}`;
+  `${Object.values(e.errors).join(`${RESET}, ${CYAN}`)}${RESET}`;
 
 export class TypeBoxDecodeEnvError extends TypeBoxError {
   readonly error: ValueError;
