@@ -20,7 +20,12 @@ import {
   ApiResponse,
 } from "@nestjs/swagger";
 import { TObject, TSchema } from "@sinclair/typebox";
-import { downgradeSchema, getParamSchema, getParamSchemas } from "../openapi";
+import {
+  downgradeSchema,
+  getParamSchema,
+  getParamSchemas,
+  shouldDowngradeSchema,
+} from "../openapi";
 import { TypeBoxMissingSchemaError, TypeBoxValidationError } from "./errors.ts";
 import { TypeBoxInterceptor } from "./interceptors.ts";
 import { TypeboxPipe } from "./pipes.ts";
@@ -61,10 +66,15 @@ export type TypeBoxOpts = {
    */
   params?: Record<string, TSchema>;
   /**
-   * Simplify nullable schemas for anyOf unions to using the `nullable` keyword.
-   * Add `enum` to literal `const` string schemas.
+   * Downgrade typebox JSON schema to an openapi 3.0 compatible schema, as well as
+   * this improves compatibility with most openapi schema renderers.
    *
-   * This is only done on the schema provided to the openapi docs, not the actual validation schema.
+   * This is only done on the schema provided to the openapi docs, the actual validation schema,
+   * is not mutated.
+   *
+   * This option will be ignored if `transformSchema` is provided.
+   *
+   * See the `downgradeSchema` function for more information on what transformations are made.
    *
    * @default true
    */
@@ -109,11 +119,36 @@ export type TypeBoxOpts = {
    * Should return an error to be thrown, or a falsy value to ignore the error.
    */
   errorFactory?: (error: TypeBoxValidationError<TSchema>) => Error | undefined;
+  /**
+   * Apply custom transformations to the schema that is provided to the openapi docs.
+   *
+   * The returned value is only used for the openapi docs, and does not replace the
+   * schema used for validation.
+   *
+   * You can however mutate the schema in place, as it is a reference to the original schema.
+   * However, this is not recommended as it can lead to unexpected behaviour.
+   *
+   * This will override the `downgradeSchema` option, if you want to downgrade the schema
+   * you will need to do it manually in this function. E.g.
+   *
+   * ```ts
+   * transformSchema: (type, schema) => downgradeSchema(schema);
+   * ```
+   */
+  transformSchema?: (
+    type: "query" | "body" | "response" | "param",
+    schema: TSchema,
+  ) => TSchema;
 };
+
+const downgradeTransformSchema: TypeBoxOpts["transformSchema"] = (_, schema) =>
+  shouldDowngradeSchema(schema) ? downgradeSchema(schema) : schema;
 
 const getTypeBoxDecorators = (status: number, options?: TypeBoxOpts) => {
   if (!options) return [];
-  options.downgradeSchema ??= true;
+  if (options.downgradeSchema !== false) {
+    options.transformSchema ??= downgradeTransformSchema;
+  }
   const decorators: MethodDecorator[] = [];
 
   // add operation metadata
@@ -133,24 +168,24 @@ const getTypeBoxDecorators = (status: number, options?: TypeBoxOpts) => {
 
   // add query schema
   if (options.query) {
-    const schema = options.downgradeSchema
-      ? downgradeSchema(options.query)
+    const schema = options.transformSchema
+      ? (options.transformSchema("query", options.query) as TObject)
       : options.query;
     decorators.push(...getParamSchemas(schema).map(ApiQuery));
   }
 
   // add body schema
   if (options.body) {
-    const schema = options.downgradeSchema
-      ? downgradeSchema(options.body)
+    const schema = options.transformSchema
+      ? options.transformSchema("body", options.body)
       : options.body;
     decorators.push(ApiBody({ schema }));
   }
 
   // add response schema
   if (options.response) {
-    const schema = options.downgradeSchema
-      ? downgradeSchema(options.response)
+    const schema = options.transformSchema
+      ? options.transformSchema("response", options.response)
       : options.response;
     decorators.push(
       UseInterceptors(new TypeBoxInterceptor(options)),
@@ -163,8 +198,8 @@ const getTypeBoxDecorators = (status: number, options?: TypeBoxOpts) => {
   // add param schemas
   if (options.params) {
     for (const key in options.params) {
-      const schema = options.downgradeSchema
-        ? downgradeSchema(options.params[key])
+      const schema = options.transformSchema
+        ? options.transformSchema("param", options.params[key])
         : options.params[key];
       decorators.push(ApiParam(getParamSchema(key, schema, true)));
     }
