@@ -33,7 +33,7 @@
     "@sinclair/typebox": "0.33.12",
     "@swc/core": "1.7.26",
     "@tsconfig/node20": "20.1.4",
-    "@types/node": "20.16.10",
+    "@types/node": "22.8.6",
     "@types/validator": "13.12.2",
     "@typescript-eslint/eslint-plugin": "7.18.0",
     "eslint": "8.57.1",
