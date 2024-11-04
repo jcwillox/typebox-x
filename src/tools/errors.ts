@@ -92,13 +92,14 @@ export function* enhanceErrors(
   }
 }
 
-export type MergedNumericValueError = Omit<ValueError, "type" | "message"> & {
+type BasicValueError = Omit<ValueError, "type" | "message" | "errors">;
+export type MergedNumericValueError = BasicValueError & {
   errors: Record<number, string>;
 };
-export type MergedStringValueError = Omit<ValueError, "type" | "message"> & {
+export type MergedStringValueError = BasicValueError & {
   errors: Record<string, string>;
 };
-export type MergedValueError = Omit<ValueError, "type" | "message"> & {
+export type MergedValueError = BasicValueError & {
   errors: Record<string | number, string>;
 };
 
